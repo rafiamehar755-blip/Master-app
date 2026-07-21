@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahmad Aluminium & Glass - Delivery Note System</title>
+<!-- html2pdf.js CDN library for programmatic high-fidelity PDF exports -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  /* Modern Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #f8fafc; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+    background: #f1f5f9; 
+    color: #1e293b; 
+    min-height: 100vh; 
+    -webkit-font-smoothing: antialiased; 
+  }
+
+  /* Header Box */
+  .app-header { 
+    background: #ffffff; 
+    padding: 16px 28px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    border-bottom: 1px solid #e2e8f0; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+  }
+  .brand-info h1 { font-size: 17px; color: #0f172a; font-weight: 800; margin-bottom: 2px; letter-spacing: -0.3px; }
+  .brand-info span { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  
+  /* Compact Header Save Folder Box */
+  .folder-setup-header { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .btn-folder-header {
+    background: #991b1b;
+    color: #ffffff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .btn-folder-header:hover { background: #7f1d1d; transform: translateY(-0.5px); }
+  #folderStatus { font-size: 11px; color: #475569; font-weight: 600; }
+
+  /* Compact Header Sync Badge */
+  .sync-badge {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #166534;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.9); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+    100% { transform: scale(0.9); opacity: 1; }
+  }
+
+  /* Responsive Main Grid */
+  .container { display: grid; grid-template-columns: 440px 1fr; gap: 0; height: calc(100vh - 79px); }
+
+  /* Mobile Switcher Tab Component */
+  .mobile-tabs {
+    display: none;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+  }
+  .mobile-tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    border-bottom: 2px solid transparent;
+  }
+  .mobile-tab-btn.active {
+    color: #991b1b;
+    border-bottom-color: #991b1b;
+    background: #fffdfd;
+  }
+
+  /* Sidebar styling */
+  .form-panel { background: #ffffff; padding: 24px; overflow-y: auto; border-right: 1px solid #e2e8f0; }
+  .form-panel h2 { color: #991b1b; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 18px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; font-weight: 800; }
+  
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 10px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .form-group input, .form-group select, .form-group textarea { 
+    width: 100%; 
+    background: #ffffff; 
+    border: 1px solid #cbd5e1; 
+    color: #1e293b; 
+    padding: 10px 14px; 
+    border-radius: 8px; 
+    font-size: 13.5px; 
+    transition: border-color 0.15s ease, box-shadow 0.15s ease; 
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+    outline: none; 
+    border-color: #991b1b; 
+    box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.08); 
+  }
+
+  /* Dynamic Custom History Card */
+  .recent-quotes-card {
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);
+  }
+
+  .items-section { margin-top: 10px; }
+  
+  /* Line items */
+  .item-row { 
+    background: #f8fafc; 
+    border: 1px solid #e2e8f0; 
+    border-radius: 10px; 
+    padding: 20px; 
+    margin-bottom: 18px; 
+    position: relative; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02); 
+    transition: all 0.2s ease;
+  }
+  .item-row:hover { border-color: #cbd5e1; background: #ffffff; }
+  .item-row h4 { color: #991b1b; font-size: 11px; margin-bottom: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; }
+  
+  .item-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .item-grid .full { grid-column: 1/-1; }
+  .item-grid input, .item-grid select, .item-grid textarea { 
+    width: 100%; 
+    background: #ffffff; 
+    border: 1px solid #cbd5e1; 
+    color: #1e293b; 
+    padding: 10px 12px; 
+    border-radius: 8px; 
+    font-size: 13px; 
+    transition: all 0.15s ease;
+  }
+  .item-grid input:focus, .item-grid select:focus, .item-grid textarea:focus {
+    outline: none;
+    border-color: #991b1b;
+    box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.08); 
+  }
+  
+  .btn-add { 
+    width: 100%; 
+    background: #ffffff; 
+    border: 2px dashed #cbd5e1; 
+    color: #475569; 
+    padding: 14px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 13px; 
+    margin-top: 5px; 
+    font-weight: 700; 
+    transition: all 0.2s; 
+  }
+  .btn-add:hover { background: #f8fafc; border-color: #94a3b8; color: #1e293b; }
+  
+  .btn-remove { 
+    position: absolute; 
+    top: 14px; 
+    right: 14px; 
+    background: #fee2e2; 
+    color: #ef4444; 
+    border: none; 
+    border-radius: 6px; 
+    padding: 6px 10px; 
+    cursor: pointer; 
+    font-size: 11px; 
+    font-weight: 700;
+    transition: all 0.15s ease;
+  }
+  .btn-remove:hover { background: #ef4444; color: #ffffff; }
+
+  .btn-generate { 
+    width: 100%; 
+    background: #991b1b; 
+    color: white; 
+    border: none; 
+    padding: 15px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: 700; 
+    margin-top: 24px; 
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 4px 6px -1px rgba(153, 27, 27, 0.15);
+  }
+  .btn-generate:hover { background: #7f1d1d; }
+  .btn-generate:active { transform: scale(0.99); }
+
+  .preview-panel { background: #cbd5e1; overflow-y: auto; overflow-x: auto; display: flex; flex-direction: column; align-items: center; padding: 32px 24px; border-left: 1px solid #cbd5e1; }
+  .preview-toolbar { width: 100%; max-width: 210mm; display: flex; gap: 12px; margin-bottom: 24px; justify-content: flex-end; }
+  
+  .btn-pdf { background: #991b1b; color: white; border: none; padding: 11px 20px; border-radius: 8px; cursor: pointer; font-size: 13.5px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.06); transition: background 0.15s; }
+  .btn-pdf:hover { background: #7f1d1d; }
+  
+  .btn-whatsapp { 
+    background: #16a34a; 
+    color: white; 
+    border: none; 
+    padding: 11px 20px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 13.5px; 
+    font-weight: 700; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    transition: background 0.15s;
+  }
+  .btn-whatsapp:hover { background: #15803d; }
+  
+  .btn-print { background: #1e293b; color: white; border: none; padding: 11px 20px; border-radius: 8px; cursor: pointer; font-size: 13.5px; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.06); transition: background 0.15s; }
+  .btn-print:hover { background: #0f172a; }
+
+  /* Physical A4 dimensions (Unified continuous wrapper) */
+  .quotation-page-sheet { 
+    background: white; 
+    width: 210mm; 
+    min-height: 297mm; 
+    height: auto; 
+    padding: 24mm 20mm; 
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); 
+    font-family: Arial, sans-serif; 
+    color: #1e293b; 
+    position: relative; 
+    margin-bottom: 24px; 
+    box-sizing: border-box; 
+    border-radius: 4px;
+  }
+
+  /* Main content area */
+  .main-content-block {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Cohesive Footer Page container */
+  .cohesive-footer-block { 
+    position: relative;
+    z-index: 1;
+    margin-top: 40px;
+    page-break-inside: avoid !important; 
+    break-inside: avoid !important; 
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 24px; position: relative; z-index: 1; table-layout: fixed; }
+  table th { background: #991b1b; color: white; padding: 12px 14px; text-align: left; text-transform: uppercase; font-size: 11px; letter-spacing: 0.8px; font-weight: bold; border: 1px solid #991b1b; }
+  table th:last-child { text-align: left; }
+  table td { padding: 12px 14px; border: 1px solid #cbd5e1; vertical-align: top; color: #1e293b; font-weight: bold; line-height: 1.4; }
+  table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+  table tr:nth-child(even) td { background: #f8fafc; }
+
+  .client-meta-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 36px; margin-bottom: 24px; font-size: 13.5px; position: relative; z-index: 1; }
+  .section-label { font-size: 11px; text-transform: uppercase; color: #000000; font-weight: 800; border-bottom: 2px solid #cbd5e1; padding-bottom: 6px; margin-bottom: 10px; letter-spacing: 0.8px; }
+
+  .watermark-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0; overflow: hidden; }
+  .watermark-text { font-family: Arial, sans-serif; font-size: 55px; font-weight: 900; color: rgba(153, 27, 27, 0.025); text-transform: uppercase; transform: rotate(-35deg); white-space: nowrap; letter-spacing: 5px; }
+
+  .recent-quote-item {
+    transition: background 0.15s ease;
+  }
+  .recent-quote-item:hover { background: #f8fafc !important; }
+
+  /* Desktop layout rendering force */
+  @media (min-width: 993px) {
+    .form-panel, .preview-panel { display: block !important; }
+  }
+
+  /* Core Mobile Screen & Multi-device UI Scaling Rules */
+  @media (max-width: 992px) {
+    .app-header { padding: 12px 18px; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .header-right { 
+      width: 100%; 
+      display: flex;
+      align-items: center;
+      justify-content: space-between; 
+      border-top: 1px solid #f1f5f9; 
+      padding-top: 12px; 
+      gap: 10px;
+    }
+    .folder-setup-header { align-items: flex-start; }
+    .btn-folder-header { padding: 6px 12px; font-size: 10px; }
+    #folderStatus { font-size: 10px; }
+    .sync-badge { padding: 6px 12px; font-size: 10px; }
+    
+    .mobile-tabs { display: flex; }
+    
+    .container { display: block !important; height: auto !important; }
+    .form-panel, .preview-panel { 
+      display: none !important; 
+      width: 100% !important; 
+      height: auto !important; 
+      overflow: visible !important; 
+      padding: 16px !important; 
+    }
+    .form-panel.active, .preview-panel.active { display: block !important; }
+
+    /* Centered mobile preview area wrapper (Scroll eliminated via zoom scale) */
+    /* Mobile-only zoom scaling explicitly turns OFF during PDF compilation using body:not(.pdf-export) to fix overlapping text [1] */
+    body:not(.pdf-export) .preview-panel { 
+      background: #cbd5e1 !important; 
+      display: flex;
+      flex-direction: column;
+      align-items: center !important; 
+      padding: 20px 10px !important;
+      overflow-x: hidden !important; 
+    }
+    body:not(.pdf-export) .quotation-container { 
+      width: 100% !important; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    /* Smart Visual Zoom Scaling to perfectly fit A4 sheets inside mobile viewport */
+    body:not(.pdf-export) .quotation-page-sheet { 
+      width: 210mm !important;
+      zoom: 0.9;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; 
+      border: 1px solid #cbd5e1 !important; 
+    }
+    body:not(.pdf-export) .page-break-divider {
+      width: 100%;
+      margin: 20px 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body:not(.pdf-export) .quotation-page-sheet { 
+      zoom: 0.65;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    body:not(.pdf-export) .quotation-page-sheet { 
+      zoom: 0.46;
+    }
+  }
+  
+  @media (max-width: 380px) {
+    body:not(.pdf-export) .quotation-page-sheet { 
+      zoom: 0.41;
+    }
+  }
+
+  @media print {
+    @page { size: A4; margin: 0 !important; }
+    body { background: white !important; margin: 0 !important; padding: 0 !important; }
+    .app-header, .form-panel, .preview-toolbar, .page-break-divider, .mobile-tabs { display: none !important; }
+    .container { display: block !important; width: 100% !important; }
+    .preview-panel { padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; display: block !important; }
+    
+    .quotation-page-sheet { 
+      transform: scale(1) !important; 
+      zoom: 1 !important;
+      margin: 0 !important; 
+      box-shadow: none !important; 
+      border: none !important; 
+      width: 210mm !important; 
+      height: auto !important; 
+      min-height: 100% !important; /* Forces natural boundary fitting and prevents trailing blank sheet generation */
+      padding: 15mm 20mm !important; /* Slightly smaller top/bottom padding to act as a layout margin safety buffer */
+    }
+    .cohesive-footer-block { margin-top: 0 !important; }
+  }
+
+  /* --- EXPLICIT EXPORT OVERRIDES TO PERMANENTLY BAN TRAILING BLANK PAGES DURING PDF SAVE --- */
+  body.pdf-export .quotation-page-sheet {
+    min-height: auto !important; /* Overrides screen min-height 297mm to prevent overflow spacing generation */
+    height: auto !important;
+    padding: 15mm 20mm !important; /* Adjust padding to safe print dimensions */
+    margin-bottom: 0 !important;
+  }
+  body.pdf-export .cohesive-footer-block {
+    margin-top: 25px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+</style>
+</head>
+<body>
+
+<datalist id="itemNamesDatalist"></datalist>
+
+<!-- Header Box with Dashboard Return Button -->
+<div class="app-header">
+  <div class="header-left">
+    <!-- Back to Central Dashboard Button -->
+    <a href="index.html" style="text-decoration: none; display: flex; align-items: center; justify-content: center; background: #991b1b; color: white; border-radius: 8px; padding: 10px 14px; margin-right: 12px; font-weight: bold; font-size: 13px; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); transition: background 0.15s;" onmouseover="this.style.background='#7f1d1d'" onmouseout="this.style.background='#991b1b'">
+      🏠 <span>Dashboard</span>
+    </a>
+    
+    <div class="logo-box">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+        <line x1="9" y1="22" x2="9" y2="16"></line>
+        <line x1="15" y1="22" x2="15" y2="16"></line>
+        <line x1="9" y1="16" x2="15" y2="16"></line>
+        <path d="M9 6h.01"></path>
+        <path d="M15 6h.01"></path>
+        <path d="M9 10h.01"></path>
+        <path d="M15 10h.01"></path>
+      </svg>
+    </div>
+    <div class="brand-info">
+      <h1>Ahmad Aluminium & Glass Contractor</h1>
+      <span>Dubai, UAE · Delivery & Project Dispatches Studio</span>
+    </div>
+  </div>
+  
+  <div class="header-right">
+    <!-- Target Save Folder Setup -->
+    <div class="folder-setup-header">
+      <button onclick="selectAutoSaveFolder()" class="btn-folder-header">📂 Choose Local Save Folder</button>
+      <span id="folderStatus">Status: Default Downloads folder</span>
+    </div>
+
+    <!-- Database Sync Badge -->
+    <div class="sync-badge">
+      <span class="sync-dot"></span>
+      <span>Database Sync: <strong id="syncStatus">CONNECTED</strong></span>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Tab Navigation Selector -->
+<div class="mobile-tabs">
+  <button class="mobile-tab-btn active" onclick="switchMobileTab('form')">📝 Edit Details</button>
+  <button class="mobile-tab-btn" onclick="switchMobileTab('preview')">👁️ Live Preview</button>
+</div>
+
+<div class="container">
+  <div class="form-panel active" id="formPanel">
+    
+    <!-- History Directory Area inside sidebar -->
+    <div class="recent-quotes-card">
+      <label style="color: #0f172a; font-weight: bold; font-size: 10px; margin-bottom: 10px; display: block; letter-spacing: 1px; text-transform: uppercase;">🔍 Recent Deliveries Directory</label>
+      <input type="text" id="searchQuotes" placeholder="Type to search..." oninput="filterRecentQuotes()" style="margin-bottom: 10px; font-size: 12.5px; background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; padding: 10px 12px; border-radius: 8px; width: 100%;">
+      <div id="recentQuotesList" style="max-height: 140px; overflow-y: auto; background: #ffffff; border-radius: 8px; padding: 6px; font-size: 12.5px; color: #334155; border: 1px solid #cbd5e1;">
+        <div style="text-align: center; color: #94a3b8; padding: 10px;">Loading History...</div>
+      </div>
+      <button onclick="fetchRecentQuotes()" style="width: 100%; margin-top: 10px; background: #475569; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700; transition: background 0.15s ease;">🔄 Refresh Directory</button>
+    </div>
+
+    <h2>📋 Document Details</h2>
+
+    <div class="form-group" style="display: flex; gap: 10px;">
+      <div style="flex: 1;">
+        <label>Ref Number</label>
+        <input type="text" id="quotRef" placeholder="DN-2026-205">
+      </div>
+      <button onclick="clearDraft()" style="background: #fee2e2; color: #ef4444; border: none; padding: 11px 16px; border-radius: 8px; font-size: 12px; margin-top: 20px; font-weight: 700; cursor: pointer; transition: background 0.15s;">🧹 Reset</button>
+    </div>
+    
+    <div class="form-group"><label>Date</label><input type="date" id="quotDate"></div>
+    <div class="form-group"><label>Deliver To (Client)</label><input type="text" id="clientAddr" placeholder="e.g. Spring powder coating" oninput="generateDeliveryNote()"></div>
+    <div class="form-group"><label>Subject / Project Reference</label><input type="text" id="subject" placeholder="e.g. 2 SPRING POWDER COATING-" oninput="generateDeliveryNote()"></div>
+
+    <h2 style="margin-top:24px;">🔧 Line Items</h2>
+    <div class="items-section" id="itemsContainer"></div>
+    <button class="btn-add" onclick="addItem()">+ Add Item Row</button>
+
+    <button class="btn-generate" onclick="generateDeliveryNote(); triggerSilentCloudSave();">⚡ Generate Dispatch Document</button>
+  </div>
+
+  <div class="preview-panel">
+    <div class="preview-toolbar">
+      <button class="btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
+      <button class="btn-whatsapp" onclick="shareToWhatsApp()">💬 WhatsApp</button>
+      <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+    </div>
+    <div class="quotation-container" id="quotationDoc">
+      <div style="text-align:center; color:#94a3b8; padding:80px 0; font-size:14px; font-weight: 500;">Fill form & Generate</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- INDEPENDENT DATABASE CONFIGURATION ---
+const DELIVERY_DB_URL = "https://script.google.com/macros/s/AKfycbyx5OgrmQUgEQJpgH5rJYCF-q9HnET99eBoBYsr7lLTZxXxxGKbvB8bKN8cxL7XYVMYWg/exec";
+
+// Global state variables
+let currentYear = new Date().getFullYear();
+let itemCount = 0;
+let cachedRecentDeliveries = [];
+let savedFolderHandle = null;
+
+// --- INDEXEDDB DIRECTORY STORAGE ENGINE ---
+const IDB_DB_NAME = 'AhmadDeliveryDirectoryDB';
+const IDB_STORE_NAME = 'handles';
+const IDB_KEY_NAME = 'savedFolder';
+
+function getIDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(IDB_DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      e.target.result.createObjectStore(IDB_STORE_NAME);
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function saveDirectoryHandle(handle) {
+  const db = await getIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(IDB_STORE_NAME);
+    const req = store.put(handle, IDB_KEY_NAME);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function loadDirectoryHandle() {
+  try {
+    const db = await getIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE_NAME, 'readonly');
+      const store = tx.objectStore(IDB_STORE_NAME);
+      const req = store.get(IDB_KEY_NAME);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function selectAutoSaveFolder() {
+  if (!window.showDirectoryPicker) {
+    alert("This browser doesn't fully support local folders. Saving defaults to your normal Downloads directory.");
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    await saveDirectoryHandle(handle);
+    savedFolderHandle = handle;
+    updateFolderStatusUI(handle.name);
+    alert(`Auto-save folder registered: "${handle.name}".`);
+  } catch (e) {
+    console.error(e);
+    alert("Folder selection cancelled or blocked by browser security restrictions.");
+  }
+}
+
+function updateFolderStatusUI(folderName) {
+  const statusEl = document.getElementById('folderStatus');
+  if (statusEl) {
+    statusEl.innerHTML = folderName ? `Status: Auto-saving to <strong style="color: #16a34a;">${folderName}</strong>` : `Status: Default Downloads folder`;
+  }
+}
+
+async function initFolderSelection() {
+  const handle = await loadDirectoryHandle();
+  if (handle) {
+    savedFolderHandle = handle;
+    updateFolderStatusUI(handle.name);
+  }
+}
+
+async function verifyPermission(fileHandle, readWrite) {
+  const options = {};
+  if (readWrite) {
+    options.mode = 'readwrite';
+  }
+  if ((await fileHandle.queryPermission(options)) === 'granted') {
+    return true;
+  }
+  if ((await fileHandle.requestPermission(options)) === 'granted') {
+    return true;
+  }
+  return false;
+}
+
+// --- MOBILE INTERACTION HANDLER ---
+function switchMobileTab(tab) {
+  document.querySelectorAll('.mobile-tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('formPanel').classList.remove('active');
+  const previewPanel = document.querySelector('.preview-panel');
+  previewPanel.classList.remove('active');
+
+  if (tab === 'form') {
+    document.getElementById('formPanel').classList.add('active');
+    event.currentTarget.classList.add('active');
+  } else {
+    previewPanel.classList.add('active');
+    event.currentTarget.classList.add('active');
+    generateDeliveryNote(); 
+  }
+}
+
+// --- CLOUD DATABASE HISTORY DIRECTORY LOADERS ---
+function fetchRecentQuotes() {
+  const listEl = document.getElementById('recentQuotesList');
+  listEl.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 10px;">Loading History...</div>';
+  
+  if (DELIVERY_DB_URL === "") {
+    listEl.innerHTML = '<div style="text-align: center; color: #64748b; padding: 10px;">Database URL not configured yet</div>';
+    return;
+  }
+
+  fetch(DELIVERY_DB_URL)
+  .then(res => {
+    if (!res.ok) throw new Error("HTTP error " + res.status);
+    return res.json();
+  })
+  .then(deliveries => {
+    cachedRecentDeliveries = deliveries;
+    renderRecentQuotes(deliveries);
+  })
+  .catch(err => {
+    console.error(err);
+    listEl.innerHTML = `
+      <div style="text-align: center; color: #ef4444; padding: 8px; font-size: 10px; line-height: 1.4;">
+        ⚠️ Connection Error<br>
+        <span style="font-size:9px; color:#64748b;">Sync Server Offline</span>
+      </div>`;
+  });
+}
+
+function renderRecentQuotes(deliveries) {
+  const listEl = document.getElementById('recentQuotesList');
+  if (!deliveries || deliveries.length === 0) {
+    listEl.innerHTML = '<div style="text-align: center; color: #64748b; padding: 10px;">No records found</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  deliveries.forEach(d => {
+    const div = document.createElement('div');
+    div.style.padding = '10px 12px';
+    div.style.borderBottom = '1px solid #e2e8f0';
+    div.style.cursor = 'pointer';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'space-between';
+    div.style.alignItems = 'center';
+    div.style.borderRadius = '6px';
+    div.style.margin = '2px 0';
+    div.className = 'recent-quote-item';
+    
+    div.innerHTML = `
+      <span style="font-weight: 500; color: #1e293b;"><strong style="color: #991b1b; font-weight: 700;">${d.ref}</strong> - ${d.clientAddr || 'No Client'}</span>
+      <span style="color:#16a34a; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Load</span>
+    `;
+    div.onclick = () => loadDeliveryNote(d);
+    listEl.appendChild(div);
+  });
+}
+
+function filterRecentQuotes() {
+  const term = document.getElementById('searchQuotes').value.toLowerCase();
+  const filtered = cachedRecentDeliveries.filter(d => 
+    (d.ref && d.ref.toLowerCase().includes(term)) || 
+    (d.clientAddr && d.clientAddr.toLowerCase().includes(term))
+  );
+  renderRecentQuotes(filtered);
+}
+
+function loadDeliveryNote(d) {
+  document.getElementById('quotRef').value = d.ref || '';
+  document.getElementById('clientAddr').value = d.clientAddr || '';
+  document.getElementById('subject').value = d.subject || '';
+  
+  if (d.date) {
+    try {
+      const parsedDate = new Date(d.date);
+      if (!isNaN(parsedDate.getTime())) {
+        document.getElementById('quotDate').valueAsDate = parsedDate;
+      }
+    } catch(e) {}
+  }
+
+  if (d.itemsJson) {
+    try {
+      const itemsData = JSON.parse(d.itemsJson);
+      deserializeItems(itemsData);
+    } catch(e) {
+      console.error("Could not parse itemsJson", e);
+    }
+  }
+  generateDeliveryNote();
+  alert(`Imported Details from Ref: "${d.ref}".`);
+}
+
+function deserializeItems(itemsData) {
+  document.getElementById('itemsContainer').innerHTML = '';
+  itemCount = 0;
+  itemsData.forEach(item => {
+    addItem(item.itemName || item.name || '', item.qty || '', item.colour || '');
+  });
+}
+
+function addItem(pName = '', pQty = '', pColour = '') {
+  itemCount++; const id = itemCount;
+  const div = document.createElement('div'); div.className = 'item-row'; div.id = 'item_' + id;
+
+  div.innerHTML = `
+    <h4>Item #${id}</h4><button class="btn-remove" onclick="removeItem(${id})">✕</button>
+    <div class="item-grid">
+      <div class="full"><label>Particulars (Description)</label><input type="text" id="name_${id}" value="${pName}" oninput="generateDeliveryNote()"></div>
+      <div><label>Quantity</label><input type="text" id="qty_${id}" value="${pQty}" oninput="generateDeliveryNote()"></div>
+      <div><label>Colour / Specification</label><input type="text" id="colour_${id}" value="${pColour}" oninput="generateDeliveryNote()"></div>
+    </div>`;
+  document.getElementById('itemsContainer').appendChild(div);
+}
+
+function removeItem(id) { document.getElementById('item_' + id).remove(); generateDeliveryNote(); }
+
+function getItems() {
+  let arr = [];
+  document.querySelectorAll('.item-row').forEach(row => {
+    const id = row.id.replace('item_', '');
+    arr.push({
+      itemName: document.getElementById('name_' + id).value || '',
+      qty: document.getElementById('qty_' + id).value || '',
+      colour: document.getElementById('colour_' + id).value || ''
+    });
+  });
+  return arr;
+}
+
+// --- GENERATE DISPATCH DOCUMENT (SCREENSHOT SPECIFICATIONS ENFORCED) ---
+function generateDeliveryNote() {
+  const ref = document.getElementById('quotRef').value || '';
+  const date = formatDate(document.getElementById('quotDate').value);
+  const clientAddr = document.getElementById('clientAddr').value || '';
+  const subject = document.getElementById('subject').value || '';
+  const items = getItems();
+
+  if (items.length === 0) { 
+    document.getElementById('quotationDoc').innerHTML = `
+      <div style="text-align:center; color:#94a3b8; padding:80px 0; font-size:14px; font-weight:500;">Fill the form & click Generate Dispatch Document</div>`;
+    return; 
+  }
+
+  let rows = '';
+  items.forEach((item, idx) => {
+    rows += `<tr>
+      <td style="text-align:center;font-weight:bold;vertical-align:top; border-right: 1px solid #cbd5e1;">${idx + 1}</td>
+      <td style="vertical-align:top; border-right: 1px solid #cbd5e1;">${item.itemName || '&nbsp;'}</td>
+      <td style="text-align:center;font-weight:bold;vertical-align:top; border-right: 1px solid #cbd5e1;">${item.qty || '&nbsp;'}</td>
+      <td style="vertical-align:top;font-size:11px;">${item.colour || '&nbsp;'}</td>
+    </tr>`;
+  });
+
+  const watermarkHTML = `
+    <div class="watermark-container">
+      <div class="watermark-text">AHMAD ALUMINIUM &amp; GLASS</div>
+    </div>`;
+
+  const headerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:3px solid #991b1b;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:15px;">
+        <img src="Ahmad_Aluminium_Logo.png?v=5" alt="Ahmad Aluminium Logo" style="height:85px; max-width:320px; object-fit:contain; border-radius:4px;">
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:36px;font-weight:900;color:#991b1b;letter-spacing:4px;text-transform:uppercase; line-height:1;">DELIVERY NOTE</div>
+      </div>
+    </div>
+    <div style="background:#fef2f2;border:1px solid #fca5a5;padding:10px 18px;display:flex;justify-content:space-between;font-size:12px;margin-bottom:18px;border-radius:6px;align-items:center; width:100%; color: #991b1b; font-weight: bold;">
+      <span>📞 <strong>+971 58 849 0784</strong></span>
+      <span>✉️ info@ahmadaluminium.ae</span>
+      <span>🌐 www.ahmadaluminium.ae</span>
+    </div>`;
+
+  const page1 = `
+  <div class="quotation-page-sheet" id="printDocSheet">
+    ${watermarkHTML}
+    
+    <div class="main-content-block">
+      ${headerHTML}
+      <div class="client-meta-grid">
+        <div>
+          <div class="section-label">Client Details</div>
+          <div style="font-size:14px; line-height:1.5; color:#0f172a;"><strong>To:</strong> ${clientAddr}</div>
+        </div>
+        <div>
+          <div class="section-label">Document Info</div>
+          <div style="font-size:13px; line-height:1.5; color:#0f172a;">
+            <div><strong>Document:</strong> Delivery Note</div>
+            <div><strong>Date:</strong> &nbsp;${date}</div>
+            <div><strong>Reference No:</strong> &nbsp;<span style="color: #991b1b; font-weight: 800;">${ref}</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="text-align:center;font-weight:800;font-size:13.5px;color:#1e293b;background:#f8fafc;border:1px solid #cbd5e1;padding:10px;margin-bottom:24px;text-transform:uppercase;letter-spacing:0.8px;border-radius:6px;">
+        ${subject}
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:10%;text-align:center;">Sr.</th>
+            <th style="width:45%;">Particulars</th>
+            <th style="width:20%;text-align:center;">Quantity</th>
+            <th style="width:25%;">Colour / Spec</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Cohesive Footer Page: Terms & Signature layouts -->
+    <div class="cohesive-footer-block">
+      <div style="font-size:12.5px;margin:25px 0 10px;line-height:1.8;color:#334155;">
+        If you have any questions regarding this dispatch, please contact:<br>
+        <strong style="color: #0f172a;">Mr. Ahmad Ali</strong><br>
+        Phone: <strong style="color: #991b1b;">+971 58 849 0784</strong><br>
+        <span style="color:#64748b; font-weight:bold; letter-spacing:0.3px;">Thank you for your business!</span>
+      </div>
+
+      <!-- SIGNATURE + STAMP ROW -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:35px;margin-bottom:10px;">
+        <!-- STAMP AREA -->
+        <div style="text-align:center; padding: 10px; background: #fafafa; border: 1px solid #e2e8f0; border-radius: 8px; width: 180px;">
+          <div style="font-size:10px;font-weight:800;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Company Stamp:</div>
+          <img src="Stamp-Ahmad.jpg?v=5" alt="Ahmad Stamp" style="height:100px; width:auto; display:inline-block; border-radius:4px; object-fit:contain;">
+        </div>
+
+        <!-- SIGNATURE AREA -->
+        <div style="text-align:center; border-bottom:2px solid #cbd5e1; padding-bottom:8px; width:220px;">
+          <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom: 5px;">
+            <span style="font-size:11px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.5px;">Authorized Signature:</span>
+          </div>
+          <img src="Signature-Ahmad.png?v=5" alt="Ahmad Signature" style="height:55px; width:auto; display:inline-block; object-fit:contain;">
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('quotationDoc').innerHTML = page1;
+}
+
+// --- AUTOMATIC SEQUENCE PDF SAVER ---
+async function downloadPDF() {
+  const ref = document.getElementById('quotRef').value || '';
+  const element = document.getElementById('quotationDoc');
+  
+  if (!element || element.innerHTML.includes('Fill form & Generate')) {
+    alert("Please generate the delivery note first.");
+    return;
+  }
+
+  // Force high-fidelity desktop context by adding the pdf-export class to body
+  document.body.classList.add('pdf-export');
+
+  const opt = {
+    margin:       0,
+    filename:     `${ref}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true, logging: false },
+    jsPDF:        { unit: 'pt', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['css', 'legacy'] }
+  };
+
+  try {
+    if (savedFolderHandle) {
+      const hasPermission = await verifyPermission(savedFolderHandle, true);
+      if (hasPermission) {
+        const blob = await html2pdf().set(opt).from(element).output('blob');
+        const fileHandle = await savedFolderHandle.getFileHandle(`${ref}.pdf`, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        
+        alert(`Successfully auto-saved as: "${ref}.pdf"`);
+        incrementReferenceNumber();
+        document.body.classList.remove('pdf-export'); 
+        return;
+      }
+    }
+  } catch (err) {
+    console.error("Auto-save folder writing failed:", err);
+  }
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    incrementReferenceNumber();
+    document.body.classList.remove('pdf-export'); 
+  }).catch(err => {
+    document.body.classList.remove('pdf-export'); 
+    console.error("PDF compile failed:", err);
+  });
+}
+
+function incrementReferenceNumber() {
+  const refVal = document.getElementById('quotRef').value;
+  const numPart = refVal.match(/\d+$/);
+  if (numPart) {
+    const usedNum = parseInt(numPart[0]);
+    localStorage.setItem('nextDNNum', usedNum + 1);
+    document.getElementById('quotRef').value = "DN-" + currentYear + "-" + (usedNum + 1);
+  }
+}
+
+// Clear Draft and keep default rows
+function clearDraft() {
+  if (confirm("Reset current details?")) {
+    document.getElementById('clientAddr').value = '';
+    document.getElementById('subject').value = '';
+    document.getElementById('itemsContainer').innerHTML = '';
+    addItem();
+    generateDeliveryNote();
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear().toString().slice(-2)}`;
+}
+
+window.onload = () => {
+  let currentSavedRef = localStorage.getItem('nextDNNum') || 205;
+  const quotRefEl = document.getElementById('quotRef');
+  if (quotRefEl) {
+    quotRefEl.value = "DN-" + currentYear + "-" + currentSavedRef;
+  }
+
+  const dateEl = document.getElementById('quotDate');
+  if (dateEl) {
+    dateEl.valueAsDate = new Date();
+  }
+
+  initFolderSelection(); 
+  fetchRecentQuotes();   
+  addItem();
+  generateDeliveryNote();
+};
+</script>
+</body>
+</html>
