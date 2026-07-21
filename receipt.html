@@ -49,14 +49,70 @@
             margin-top: 50px;
         }
 
-        @media print { .no-print { display: none; } }
+        /* Responsive Mobile Layout Override matching invoice structure */
+        @media (max-width: 992px) {
+            body {
+                flex-direction: column !important;
+                height: auto !important;
+                overflow-y: auto !important;
+            }
+            aside {
+                width: 100% !important;
+                border-right: none !important;
+                border-bottom: 1px solid #cbd5e1 !important;
+                padding: 16px !important;
+            }
+            main {
+                width: 100% !important;
+                background-color: #cbd5e1 !important;
+                padding: 24px 8px !important;
+                overflow-x: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+            /* Visual Zoom Scaling to perfectly fit A5 sheet inside mobile viewport */
+            body:not(.pdf-export) .voucher-paper {
+                zoom: 0.9;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body:not(.pdf-export) .voucher-paper {
+                zoom: 0.65;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body:not(.pdf-export) .voucher-paper {
+                zoom: 0.46;
+            }
+        }
+        
+        @media (max-width: 380px) {
+            body:not(.pdf-export) .voucher-paper {
+                zoom: 0.38;
+            }
+        }
+
+        @media print { 
+            .no-print { display: none; } 
+            body { background: white !important; }
+        }
+
+        /* PDF Export zoom isolation rules */
+        body.pdf-export .voucher-paper {
+            zoom: 1 !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
     <!-- INPUT SIDEBAR -->
-    <aside class="w-85 bg-white border-r p-8 no-print overflow-y-auto shadow-sm">
-        <!-- New Dashboard Home Button -->
+    <aside class="w-85 bg-white border-r p-8 no-print overflow-y-auto shadow-sm shrink-0">
+        <!-- Dashboard Home Button -->
         <div class="mb-6">
             <a href="index.html" class="w-full text-center py-2.5 px-4 rounded-lg bg-red-700 hover:bg-red-800 text-white font-bold flex items-center justify-center gap-2 mb-4 transition text-sm shadow-sm">
               🏠 Return to Dashboard
@@ -210,17 +266,25 @@
         async function shareToWhatsApp() {
             const element = document.getElementById('voucher-pdf');
             const serial = document.getElementById('in_serial').value || 'New';
+            
+            document.body.classList.add('pdf-export'); // Activate original zoom scale for export
+            
             const pdfBlob = await html2pdf().set({
                 margin: 5, image: { type: 'jpeg', quality: 1 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             }).from(element).output('blob');
 
+            document.body.classList.remove('pdf-export'); // Revert to mobile zoom settings
+
             const file = new File([pdfBlob], `Receipt_${serial}.pdf`, { type: "application/pdf" });
 
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try { await navigator.share({ files: [file], title: 'Receipt', text: 'Ahmad Aluminium - Official Receipt' });
-                } catch (err) { console.log(err); }
+                try { 
+                    await navigator.share({ files: [file], title: 'Receipt', text: 'Ahmad Aluminium - Official Receipt' });
+                } catch (err) { 
+                    console.log(err); 
+                }
             } else {
                 const url = window.URL.createObjectURL(pdfBlob);
                 const a = document.createElement('a'); a.href = url; a.download = `Receipt_${serial}.pdf`; a.click();
@@ -230,11 +294,19 @@
 
         function savePDF() {
             const element = document.getElementById('voucher-pdf');
+            
+            document.body.classList.add('pdf-export'); // Activate original zoom scale for export
+            
             html2pdf().set({
                 margin: 10, filename: 'Receipt.pdf', image: { type: 'jpeg', quality: 1 },
                 html2canvas: { scale: 3, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            }).from(element).save();
+            }).from(element).save().then(() => {
+                document.body.classList.remove('pdf-export'); // Revert to mobile zoom settings
+            }).catch((err) => {
+                document.body.classList.remove('pdf-export');
+                console.error(err);
+            });
         }
 
         function toWords(s) {
