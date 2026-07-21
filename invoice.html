@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ahmad Aluminium & Glass - Invoice System</title>
+<!-- Stable html2pdf.js 0.9.3 CDN library to prevent coordinate-shifting bugs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f8fafc; color: #334155; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  /* Header Box */
+  .app-header { 
+    background: #ffffff; 
+    padding: 14px 24px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    border-bottom: 1px solid #e2e8f0; 
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-box {
+    background: #fff5f5;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+  }
+  .brand-info h1 { font-size: 16px; color: #0f172a; font-weight: 700; margin-bottom: 2px; }
+  .brand-info span { font-size: 11px; color: #64748b; font-weight: 500; }
+
+  .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  
+  /* Compact Header Save Folder Box */
+  .folder-setup-header { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .btn-folder-header {
+    background: #991b1b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background 0.15s;
+  }
+  .btn-folder-header:hover { background: #7f1d1d; }
+  #folderStatus { font-size: 10px; color: #64748b; font-weight: 500; }
+
+  /* Compact Header Sync Badge */
+  .sync-badge {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 9999px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #166534;
+  }
+  .sync-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.9); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+    100% { transform: scale(0.9); opacity: 1; }
+  }
+
+  /* Responsive Main Grid */
+  .container { display: grid; grid-template-columns: 420px 1fr; gap: 0; height: calc(100vh - 73px); }
+
+  /* Sidebar styling */
+  .form-panel { background: #ffffff; padding: 24px; overflow-y: auto; border-right: 1px solid #e2e8f0; }
+  .form-panel h2 { color: #991b1b; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #f1f5f9; font-weight: 700; }
+  
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 10px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .form-group input, .form-group select, .form-group textarea { 
+    width: 100%; 
+    background: #ffffff; 
+    border: 1px solid #cbd5e1; 
+    color: #1e293b; 
+    padding: 8px 12px; 
+    border-radius: 6px; 
+    font-size: 13px; 
+    transition: border-color 0.15s ease, box-shadow 0.15s ease; 
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { 
+    outline: none; 
+    border-color: #991b1b; 
+    box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.08); 
+  }
+
+  /* Dynamic Custom History Card */
+  .recent-quotes-card {
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+  }
+
+  .items-section { margin-top: 10px; }
+  .item-row { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+  .item-row h4 { color: #991b1b; font-size: 11px; margin-bottom: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .item-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .item-grid .full { grid-column: 1/-1; }
+  .item-grid input, .item-grid select, .item-grid textarea { 
+    width: 100%; 
+    background: #ffffff; 
+    border: 1px solid #cbd5e1; 
+    color: #1e293b; 
+    padding: 8px 10px; 
+    border-radius: 6px; 
+    font-size: 12.5px; 
+  }
+
+  .calc-result { background: #f0fdf4; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; color: #166534; margin-top: 10px; line-height: 1.4; border: 1px solid #bbf7d0; font-weight: 700; }
+
+  .btn-add { 
+    width: 100%; 
+    background: #ffffff; 
+    border: 1px dashed #cbd5e1; 
+    color: #475569; 
+    padding: 12px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 13px; 
+    margin-top: 5px; 
+    font-weight: 600; 
+    transition: all 0.15s; 
+  }
+  .btn-add:hover { background: #f8fafc; border-color: #94a3b8; }
+  .btn-remove { position: absolute; top: 12px; right: 12px; background: #fee2e2; color: #ef4444; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 11px; font-weight: 600; }
+  .btn-remove:hover { background: #ef4444; color: #ffffff; }
+
+  .btn-generate { 
+    width: 100%; 
+    background: #991b1b; 
+    color: white; 
+    border: none; 
+    padding: 14px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: 700; 
+    margin-top: 20px; 
+    transition: background 0.15s;
+    box-shadow: 0 4px 6px -1px rgba(153, 27, 27, 0.1);
+  }
+  .btn-generate:hover { background: #7f1d1d; }
+
+  .preview-panel { background: #f1f5f9; overflow-y: auto; overflow-x: auto; display: flex; flex-direction: column; align-items: center; padding: 24px; border-left: 1px solid #e2e8f0; }
+  .preview-toolbar { width: 100%; max-width: 210mm; display: flex; gap: 12px; margin-bottom: 20px; justify-content: flex-end; }
+  
+  .btn-pdf { background: #991b1b; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 700; }
+  .btn-pdf:hover { background: #7f1d1d; }
+  
+  .btn-whatsapp { 
+    background: #16a34a; 
+    color: white; 
+    border: none; 
+    padding: 10px 18px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 13px; 
+    font-weight: 700; 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+  }
+  .btn-whatsapp:hover { background: #15803d; }
+  
+  .btn-print { background: #1e293b; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+
+  /* Physical A4 Sized single-page container with symmetric 20mm margins */
+  .quotation-page { background: white; width: 210mm; min-height: 297mm; height: auto; padding: 20mm; box-shadow: 0 4px 20px rgba(0,0,0,0.06); font-family: Arial, sans-serif; color: #1e293b; position: relative; box-sizing: border-box; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 16px; position: relative; z-index: 1; table-layout: fixed; }
+  table th { background: #991b1b; color: white; padding: 10px 12px; text-align: left; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
+  table th:last-child { text-align: right; }
+  table td { padding: 10px 12px; border: 1px solid #cbd5e1; vertical-align: top; color: #334155; }
+  table tr:nth-child(even) td { background: #fafafa; }
+  
+  /* Text Wrapping / Folding fix applied to all standard amount cell columns */
+  table td:nth-child(3), table td:nth-child(4), table td:nth-child(5) {
+    white-space: nowrap !important;
+  }
+  
+  .total-row td { font-weight: bold; background: #ffffff !important; border-top: 1.5px solid #cbd5e1; border-bottom: 1.5px solid #cbd5e1; }
+  .total-row td:last-child { color: #000; font-size: 12px; text-align: right; white-space: nowrap !important; }
+
+  .client-meta-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 32px; margin-bottom: 20px; font-size: 13px; position: relative; z-index: 1; }
+  .section-label { font-size: 10.5px; text-transform: uppercase; color: #0f172a; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 8px; letter-spacing: 0.5px; }
+
+  .watermark-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 0; overflow: hidden; }
+  .watermark-text { font-family: Arial, sans-serif; font-size: 55px; font-weight: 900; color: rgba(153, 27, 27, 0.02); text-transform: uppercase; transform: rotate(-35deg); white-space: nowrap; letter-spacing: 5px; }
+
+  .recent-quote-item:hover {
+    background: #f1f5f9 !important;
+  }
+
+  /* Multi-device Vertical Stack Layout Rules replacing tab selector scripts entirely */
+  @media (max-width: 992px) {
+    .container { 
+      display: flex !important; 
+      flex-direction: column !important; 
+      height: auto !important; 
+    }
+    .form-panel { 
+      width: 100% !important; 
+      height: auto !important; 
+      overflow-y: visible !important; 
+      border-right: none !important; 
+      border-bottom: 1px solid #cbd5e1 !important; 
+      padding: 16px !important;
+    }
+    
+    /* Interactive, beautifully aligned desktop viewport rendering stacked on bottom [1] */
+    body:not(.pdf-export) .preview-panel {
+      background: #e2e8f0 !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center !important;
+      padding: 24px 8px !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow-y: visible !important;
+    }
+    body:not(.pdf-export) .quotation-container {
+      width: 100% !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    body:not(.pdf-export) .quotation-page {
+      width: 210mm !important;
+      zoom: 0.9; /* Tablet default scale bounds */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body:not(.pdf-export) .quotation-page {
+      zoom: 0.65;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    body:not(.pdf-export) .quotation-page {
+      zoom: 0.46;
+    }
+  }
+  
+  @media (max-width: 380px) {
+    body:not(.pdf-export) .quotation-page {
+      zoom: 0.41;
+    }
+  }
+
+  /* --- DETAILED MEDIA PRINT OVERRIDES --- */
+  @media print {
+    @page { 
+      size: A4; 
+      margin: 15mm 15mm 15mm 15mm !important; 
+    }
+    
+    html, body {
+      background: white !important; 
+      color: #000000 !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: auto !important;
+      overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    .app-header, 
+    .form-panel, 
+    .preview-toolbar, 
+    .page-break-divider { 
+      display: none !important; 
+    }
+    
+    .container { 
+      display: block !important; 
+      width: 100% !important; 
+      height: auto !important;
+      overflow: visible !important;
+    }
+    
+    .preview-panel { 
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+      background: white !important; 
+      padding: 0 !important; 
+      margin: 0 !important; 
+      border: none !important;
+    }
+
+    .quotation-container,
+    #quotationDoc {
+      display: block !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    
+    .quotation-page { 
+      display: block !important;
+      box-shadow: none !important; 
+      border: none !important; 
+      width: 100% !important; 
+      max-width: 100% !important;
+      height: auto !important; 
+      min-height: auto !important; 
+      padding: 0 !important; 
+      margin: 0 !important; 
+      overflow: visible !important;
+    }
+    
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+
+  /* --- EXPLICIT EXPORT CSS OVERRIDES (Lock to exact 210mm A4 boundaries) --- */
+  body.pdf-export .preview-panel {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 210mm !important;
+  }
+  body.pdf-export .quotation-container,
+  body.pdf-export #quotationDoc {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  body.pdf-export .quotation-page {
+    width: 210mm !important;
+    min-width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: auto !important; 
+    height: auto !important;
+    padding: 15mm 20mm !important; 
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+</style>
+</head>
+<body class="">
+
+<!-- Header Box -->
+<div class="app-header">
+  <div class="header-left">
+    <div class="logo-box">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+        <line x1="9" y1="22" x2="9" y2="16"></line>
+        <line x1="15" y1="22" x2="15" y2="16"></line>
+        <line x1="9" y1="16" x2="15" y2="16"></line>
+        <path d="M9 6h.01"></path>
+        <path d="M15 6h.01"></path>
+        <path d="M9 10h.01"></path>
+        <path d="M15 10h.01"></path>
+      </svg>
+    </div>
+    <div class="brand-info">
+      <h1>Ahmad Aluminium & Glass Contractor</h1>
+      <span>Dubai, UAE · Official Invoice Studio</span>
+    </div>
+  </div>
+  
+  <div class="header-right">
+    <!-- Target Save Folder Setup -->
+    <div class="folder-setup-header">
+      <button onclick="selectAutoSaveFolder()" class="btn-folder-header">📂 Choose Local Save Folder</button>
+      <span id="folderStatus">Status: Default Downloads folder</span>
+    </div>
+
+    <!-- Database Sync Badge -->
+    <div class="sync-badge">
+      <span class="sync-dot"></span>
+      <span>Database Sync: <strong id="syncStatus">CONNECTED</strong></span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="form-panel" id="formPanel">
+    
+    <div class="form-group" style="background: #f0fdf4; padding: 14px; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 16px;">
+      <label style="color: #166534; font-weight: bold; font-size: 10px; margin-bottom: 4px; display: block; letter-spacing: 1px;">☁️ Cloud Database Status</label>
+      <div id="syncStatus" style="font-size: 12px; color: #14532d; font-weight: bold;">☁️ Connected & Synced</div>
+    </div>
+
+    <div class="form-group" style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+      <label style="color: #334155; font-weight: bold; font-size: 10px; margin-bottom: 8px; display: block; letter-spacing: 1px;">🔍 Recent Invoices Directory</label>
+      <input type="text" id="searchQuotes" placeholder="Type to search..." oninput="filterRecentQuotes()" style="margin-bottom: 8px; font-size: 12px; background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; padding: 8px 10px;">
+      <div id="recentQuotesList" style="max-height: 120px; overflow-y: auto; background: #ffffff; border-radius: 6px; padding: 4px; font-size: 11px; color: #334155; border: 1px solid #e2e8f0;">
+        <div style="text-align: center; color: #94a3b8; padding: 10px;">Loading History...</div>
+      </div>
+      <button onclick="fetchRecentQuotes()" style="width: 100%; margin-top: 8px; background: #475569; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600;">🔄 Refresh Directory</button>
+    </div>
+
+    <h2>📋 Invoice Details</h2>
+
+    <div class="form-group">
+      <label>⚙️ Invoice Format Mode</label>
+      <select id="invoiceMode" onchange="onInvoiceModeChange()">
+        <option value="mode1" selected>Mode 1: With VAT (60% Advance Setup)</option>
+        <option value="mode2">Mode 2: Without VAT (60% Advance Setup)</option>
+        <option value="mode3">Mode 3: Paid &amp; Balance Model (Custom Setup)</option>
+      </select>
+    </div>
+
+    <div class="form-group" style="display: flex; gap: 10px;">
+      <div style="flex: 1;">
+        <label>Invoice Number</label>
+        <input type="text" id="quotRef" placeholder="AA-2026-002">
+      </div>
+      <button onclick="clearDraft()" style="background: #fee2e2; color: #ef4444; border: none; padding: 9px 12px; border-radius: 6px; font-size: 11px; margin-top: 20px; font-weight: bold;">🧹 Reset</button>
+    </div>
+    
+    <div class="form-group"><label>Date</label><input type="date" id="quotDate"></div>
+    <div class="form-group"><label>To (Client Name)</label><input type="text" id="clientName" placeholder="Client Name"></div>
+    <div class="form-group"><label>Client Address</label><textarea id="clientAddr" rows="2" placeholder="Client Address"></textarea></div>
+    <div class="form-group"><label>Subject</label><input type="text" id="subject" placeholder="Subject Reference"></div>
+    <div class="form-group"><label>Delivery Terms</label><input type="text" id="delivery" placeholder="Delivery Terms"></div>
+
+    <h2 style="margin-top:20px;">🔧 Line Items</h2>
+    <div class="items-section" id="itemsContainer"></div>
+    <button class="btn-add" onclick="addItem()">+ Add Item</button>
+
+    <button class="btn-generate" onclick="generateQuotation(); triggerSilentCloudSave();">⚡ Generate Invoice</button>
+  </div>
+
+  <div class="preview-panel">
+    <div class="preview-toolbar">
+      <button class="btn-pdf" onclick="downloadPDF()">📄 Download PDF</button>
+      <button class="btn-whatsapp" onclick="shareToWhatsApp()">💬 WhatsApp</button>
+      <button class="btn-print" onclick="window.print()">🖨️ Print</button>
+    </div>
+    <div class="quotation-container" id="quotationDoc">
+      <div style="text-align:center; color:#94a3b8; padding:80px 0; font-size:14px; font-weight: 500;">Fill form & Generate Invoice</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Hardcoded Google Sheet Invoice Web App URL
+const DB_URL = "https://script.google.com/macros/s/AKfycbwkFttu0ebKE8x1xGU0G0pvor7yXd4yNognYsOxg_5hMaTofElzpApLYnTPEz04Dvh5/exec";
+
+let itemCount = 0;
+let cachedRecentQuotes = [];
+
+// Format sequential number with leading zeros (e.g. 002)
+function formatNumber(num) {
+  return String(num).padStart(3, '0');
+}
+
+// --- INDEXEDDB DIRECTORY STORAGE ENGINE ---
+const IDB_DB_NAME = 'AhmadAluInvoiceDirectoryDB';
+const IDB_STORE_NAME = 'handles';
+const IDB_KEY_NAME = 'savedFolder';
+
+function getIDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(IDB_DB_NAME, 1);
+    request.onupgradeneeded = (e) => {
+      e.target.result.createObjectStore(IDB_STORE_NAME);
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function saveDirectoryHandle(handle) {
+  const db = await getIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(IDB_STORE_NAME);
+    const req = store.put(handle, IDB_KEY_NAME);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function loadDirectoryHandle() {
+  try {
+    const db = await getIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE_NAME, 'readonly');
+      const store = tx.objectStore(IDB_STORE_NAME);
+      const req = store.get(IDB_KEY_NAME);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+let savedFolderHandle = null;
+
+async function selectAutoSaveFolder() {
+  if (!window.showDirectoryPicker) {
+    alert("This browser doesn't fully support the local File System Access API.");
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    await saveDirectoryHandle(handle);
+    savedFolderHandle = handle;
+    updateFolderStatusUI(handle.name);
+    alert(`Success! Automatic save folder registered: "${handle.name}".`);
+  } catch (e) {
+    console.error(e);
+    if (e.name === 'SecurityError') {
+      alert("Security Restriction: Browsers block target folder selection inside sandboxed environments. Please save this code as an HTML file on your computer and open it directly.");
+    } else {
+      alert("Folder selection cancelled or failed.");
+    }
+  }
+}
+
+function updateFolderStatusUI(folderName) {
+  const statusEl = document.getElementById('folderStatus');
+  if (statusEl) {
+    statusEl.innerHTML = folderName ? `Status: Auto-saving to <strong style="color: #16a34a;">${folderName}</strong>` : `Status: Default Downloads folder`;
+  }
+}
+
+async function initFolderSelection() {
+  const handle = await loadDirectoryHandle();
+  if (handle) {
+    savedFolderHandle = handle;
+    updateFolderStatusUI(handle.name);
+  }
+}
+
+async function verifyPermission(fileHandle, readWrite) {
+  const options = {};
+  if (readWrite) {
+    options.mode = 'readwrite';
+  }
+  if ((await fileHandle.queryPermission(options)) === 'granted') {
+    return true;
+  }
+  if ((await fileHandle.requestPermission(options)) === 'granted') {
+    return true;
+  }
+  return false;
+}
+
+// --- ACTIVE INVOICE MODE TOGGLE HANDLER ---
+function onInvoiceModeChange() {
+  const mode = document.getElementById('invoiceMode').value;
+  const paidInputGroups = document.querySelectorAll('.paid-amount-input-group');
+  
+  if (mode === 'mode3') {
+    paidInputGroups.forEach(el => el.style.display = 'block');
+  } else {
+    paidInputGroups.forEach(el => el.style.display = 'none');
+  }
+  
+  // Re-calculate all items and regenerate live document preview
+  document.querySelectorAll('.item-row').forEach(row => {
+    const id = row.id.replace('item_', '');
+    calcItem(id);
+  });
+  generateQuotation();
+}
+
+// --- CLOUD DATABASE HISTORY DIRECTORY LOADERS ---
+function fetchRecentQuotes() {
+  const listEl = document.getElementById('recentQuotesList');
+  listEl.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 10px;">Loading History...</div>';
+  
+  fetch(DB_URL)
+  .then(res => res.json())
+  .then(quotes => {
+    cachedRecentQuotes = quotes;
+    renderRecentQuotes(quotes);
+  })
+  .catch(err => {
+    console.error(err);
+    listEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 10px;">Failed to load history</div>';
+  });
+}
+
+function renderRecentQuotes(quotes) {
+  const listEl = document.getElementById('recentQuotesList');
+  if (!quotes || quotes.length === 0) {
+    listEl.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 10px;">No invoices found</div>';
+    return;
+  }
+  listEl.innerHTML = '';
+  quotes.forEach(q => {
+    const div = document.createElement('div');
+    div.style.padding = '8px';
+    div.style.borderBottom = '1px solid #e2e8f0';
+    div.style.cursor = 'pointer';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'space-between';
+    div.style.alignItems = 'center';
+    div.className = 'recent-quote-item';
+    
+    const displayTotal = q.total ? parseFloat(q.total).toLocaleString('en', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '0.00';
+    div.innerHTML = `
+      <span><strong>${q.ref}</strong> - ${q.client || 'No Name'}</span>
+      <span style="color:#16a34a;font-weight:bold;">AED ${displayTotal}</span>
+    `;
+    div.onclick = () => loadQuoteFromDirectory(q);
+    listEl.appendChild(div);
+  });
+}
+
+function filterRecentQuotes() {
+  const term = document.getElementById('searchQuotes').value.toLowerCase();
+  const filtered = cachedRecentQuotes.filter(q => 
+    (q.ref && q.ref.toLowerCase().includes(term)) || 
+    (q.client && q.client.toLowerCase().includes(term))
+  );
+  renderRecentQuotes(filtered);
+}
+
+function loadQuoteFromDirectory(q) {
+  document.getElementById('quotRef').value = q.ref || '';
+  document.getElementById('clientName').value = q.client || '';
+  document.getElementById('clientAddr').value = q.clientAddr || '';
+  document.getElementById('subject').value = q.subject || '';
+  document.getElementById('delivery').value = q.delivery || '';
+  
+  if (q.date) {
+    try {
+      const d = new Date(q.date);
+      if (!isNaN(d.getTime())) {
+        document.getElementById('quotDate').valueAsDate = d;
+      }
+    } catch(e) {}
+  }
+
+  // Pre-select mode dropdown from saved totals
+  if (q.itemsJson) {
+    try {
+      const itemsData = JSON.parse(q.itemsJson);
+      const hasPaidFields = itemsData.some(i => i.paid !== undefined && i.paid !== null && i.paid > 0);
+      
+      if (hasPaidFields) {
+        document.getElementById('invoiceMode').value = 'mode3';
+      } else {
+        // Toggle depending on total vs advance matching
+        const calculatedVat = q.advance * 0.05;
+        const diff = Math.abs(q.total - (q.advance + calculatedVat));
+        document.getElementById('invoiceMode').value = (diff < 0.1) ? 'mode1' : 'mode2';
+      }
+      onInvoiceModeChange();
+      deserializeItems(itemsData);
+    } catch(e) {
+      console.error("Could not parse itemsJson", e);
+    }
+  }
+  generateQuotation();
+  alert(`Loaded Invoice: Ref "${q.ref}" for "${q.client || 'No Name'}".`);
+}
+
+function deserializeItems(itemsData) {
+  document.getElementById('itemsContainer').innerHTML = '';
+  itemCount = 0;
+  itemsData.forEach(item => {
+    addItem(item.name, item.desc, item.amount, item.paid || '');
+  });
+}
+
+function addItem(pName = '', pDesc = '', pAmount = '', pPaid = '') {
+  itemCount++; const id = itemCount;
+  const div = document.createElement('div'); div.className = 'item-row'; div.id = 'item_' + id;
+  
+  const mode = document.getElementById('invoiceMode').value;
+  const paidGroupDisplay = (mode === 'mode3') ? 'block' : 'none';
+
+  div.innerHTML = `
+    <h4>Item #${id}</h4><button class="btn-remove" onclick="removeItem(${id})">✕</button>
+    <div class="item-grid">
+      <div class="full"><label>Particulars (Item Title)</label><input type="text" id="name_${id}" value="${pName}"></div>
+      <div class="full"><label>Description details</label><textarea id="desc_${id}" rows="2">${pDesc}</textarea></div>
+      <div class="full"><label>Full Amount (AED)</label><input type="number" id="amount_${id}" value="${pAmount}" oninput="calcItem(${id})"></div>
+      <div class="full paid-amount-input-group" id="paid_group_${id}" style="display:${paidGroupDisplay};"><label>Paid Amount (AED)</label><input type="number" id="paid_${id}" value="${pPaid}" oninput="calcItem(${id})"></div>
+    </div>
+    <div class="calc-result" id="calc_${id}" data-amount="0" data-advance="0" data-paid="0" data-balance="0">Amount: AED 0.00</div>`;
+  document.getElementById('itemsContainer').appendChild(div);
+  calcItem(id);
+}
+
+function removeItem(id) { document.getElementById('item_' + id).remove(); generateQuotation(); }
+
+function calcItem(id) {
+  const mode = document.getElementById('invoiceMode').value;
+  const fullAmount = parseFloat(document.getElementById('amount_' + id).value) || 0;
+  
+  let advance = 0;
+  let paid = 0;
+  let balance = 0;
+
+  if (mode === 'mode3') {
+    paid = parseFloat(document.getElementById('paid_' + id).value) || 0;
+    balance = fullAmount - paid;
+  } else {
+    advance = fullAmount * 0.6;
+  }
+  
+  const el = document.getElementById('calc_' + id);
+  if (el) {
+    el.dataset.amount = fullAmount;
+    el.dataset.advance = advance;
+    el.dataset.paid = paid;
+    el.dataset.balance = balance;
+    
+    if (mode === 'mode3') {
+      el.textContent = `Total: AED ${fullAmount.toLocaleString('en', {minimumFractionDigits: 2})} | Paid: AED ${paid.toLocaleString('en', {minimumFractionDigits: 2})} | Balance: AED ${balance.toLocaleString('en', {minimumFractionDigits: 2})}`;
+    } else {
+      el.textContent = `Full: AED ${fullAmount.toLocaleString('en', {minimumFractionDigits: 2})} | Advance @60%: AED ${advance.toLocaleString('en', {minimumFractionDigits: 2})}`;
+    }
+  }
+}
+
+function getItems() {
+  let arr = [];
+  document.querySelectorAll('.item-row').forEach(row => {
+    const id = row.id.replace('item_', '');
+    const calcEl = document.getElementById('calc_' + id);
+    arr.push({
+      name: document.getElementById('name_' + id).value,
+      desc: document.getElementById('desc_' + id).value,
+      amount: parseFloat(document.getElementById('amount_' + id).value) || 0,
+      advance: parseFloat(calcEl.dataset.advance) || 0,
+      paid: parseFloat(calcEl.dataset.paid) || 0,
+      balance: parseFloat(calcEl.dataset.balance) || 0
+    });
+  });
+  return arr;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+}
+
+// --- GENERATE TAX INVOICE (EXACT FORMAT MATCHING SPECIFIED PDF) ---
+function generateQuotation() {
+  const mode = document.getElementById('invoiceMode').value;
+  const ref = document.getElementById('quotRef').value || 'AA-2026-002';
+  const date = formatDate(document.getElementById('quotDate').value);
+  const clientName = document.getElementById('clientName').value || '';
+  const clientAddr = document.getElementById('clientAddr').value || '';
+  const subject = document.getElementById('subject').value || '';
+  const delivery = document.getElementById('delivery').value || '';
+  const items = getItems();
+
+  if (items.length === 0) { 
+    document.getElementById('quotationDoc').innerHTML = `
+      <div style="text-align:center; color:#94a3b8; padding:80px 0; font-size:14px; font-weight: 500;">Fill form & Generate Invoice</div>`;
+    return; 
+  }
+
+  let subtotalAmount = 0;
+  let subtotalAdvance = 0;
+  let subtotalPaid = 0;
+  let subtotalBalance = 0;
+
+  let rows = '';
+  items.forEach((item, idx) => {
+    const descriptionText = item.desc ? `<br><span style="font-size:11px;color:#475569;line-height:1.4;">${item.desc}</span>` : '';
+    const particularsCell = `<strong>${item.name || '&nbsp;'}</strong>${descriptionText}`;
+    
+    subtotalAmount += item.amount;
+    subtotalAdvance += item.advance;
+    subtotalPaid += item.paid;
+    subtotalBalance += item.balance;
+
+    if (mode === 'mode3') {
+      rows += `<tr>
+        <td style="text-align:center;font-weight:bold;vertical-align:top;">${idx + 1}</td>
+        <td style="vertical-align:top;">${particularsCell}</td>
+        <td style="text-align:right;vertical-align:top;font-weight:bold;">${item.amount > 0 ? item.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : '&nbsp;'}</td>
+        <td style="text-align:right;vertical-align:top;font-weight:bold;">${item.paid > 0 ? item.paid.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : '&nbsp;'}</td>
+        <td style="text-align:right;font-weight:bold;vertical-align:top;">${item.balance > 0 ? item.balance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : '&nbsp;'}</td>
+      </tr>`;
+    } else {
+      rows += `<tr>
+        <td style="text-align:center;font-weight:bold;vertical-align:top;">${idx + 1}</td>
+        <td style="vertical-align:top;">${particularsCell}</td>
+        <td style="text-align:right;vertical-align:top;font-weight:bold;">${item.amount > 0 ? item.amount.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : '&nbsp;'}</td>
+        <td style="text-align:right;vertical-align:top;font-weight:bold;">${item.advance > 0 ? item.advance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : '&nbsp;'}</td>
+        <td style="text-align:right;font-weight:bold;vertical-align:top;">${item.advance > 0 ? item.advance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : '&nbsp;'}</td>
+      </tr>`;
+    }
+  });
+
+  // Table headers adjust dynamically based on selected mode
+  let tableHeaders = '';
+  if (mode === 'mode3') {
+    tableHeaders = `
+      <tr>
+        <th style="width:8%;text-align:center;">Sr.</th>
+        <th style="width:44%;">Particulars</th>
+        <th style="width:16%;text-align:right;">Total Amount</th>
+        <th style="width:16%;text-align:right;">Paid Amount</th>
+        <th style="width:18%;text-align:right;">Balance Amount</th>
+      </tr>`;
+  } else {
+    tableHeaders = `
+      <tr>
+        <th style="width:8%;text-align:center;">Sr.</th>
+        <th style="width:44%;">Particulars</th>
+        <th style="width:16%;text-align:right;">Amount</th>
+        <th style="width:16%;text-align:right;">Advance @60%</th>
+        <th style="width:18%;text-align:right;">Total Amount</th>
+      </tr>`;
+  }
+
+  // Bottom Totals rows compile dynamically [1, 2, 3]
+  let totalsRows = '';
+  if (mode === 'mode1') {
+    const vat = subtotalAdvance * 0.05;
+    const grand = subtotalAdvance + vat;
+    totalsRows += `
+      <tr class="total-row">
+        <td colspan="2" style="border-right:none; text-align:right;"><strong>Amount Excl. VAT:</strong></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="text-align:right; font-weight:bold; white-space: nowrap !important;">${subtotalAdvance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})} AED</td>
+      </tr>
+      <tr class="total-row">
+        <td colspan="2" style="border-right:none; text-align:right;"><strong>VAT @ 5%:</strong></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="text-align:right; font-weight:bold; white-space: nowrap !important;">${vat.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})} AED</td>
+      </tr>
+      <tr class="total-row" style="background:#fffdfd!important; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">
+        <td colspan="2" style="border-right:none; text-align:right; font-size:12px; color:#991b1b;"><strong>Total Inc. VAT:</strong></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="text-align:right; color:#991b1b; font-size:13px; font-weight:bold; white-space: nowrap !important;">${grand.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})} AED</td>
+      </tr>`;
+  } else if (mode === 'mode2') {
+    totalsRows += `
+      <tr class="total-row">
+        <td colspan="2" style="border-right:none; text-align:right;"><strong>Total Amount:</strong></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="text-align:right; font-weight:bold; white-space: nowrap !important;">${subtotalAdvance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})} AED</td>
+      </tr>
+      <tr class="total-row" style="background:#fffdfd!important; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">
+        <td colspan="2" style="border-right:none; text-align:right; font-size:12px; color:#991b1b;"><strong>Payable Amount:</strong></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="text-align:right; color:#991b1b; font-size:13px; font-weight:bold; white-space: nowrap !important;">${subtotalAdvance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})} AED</td>
+      </tr>`;
+  } else if (mode === 'mode3') {
+    totalsRows += `
+      <tr class="total-row" style="background:#fffdfd!important; border-top: 2px solid #cbd5e1; border-bottom: 2px solid #cbd5e1;">
+        <td colspan="2" style="border-right:none; text-align:right; font-size:12px; color:#991b1b;"><strong>Total Payable / Grand Total:</strong></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="border-left:none; border-right:none;"></td>
+        <td style="text-align:right; color:#991b1b; font-size:13px; font-weight:bold; white-space: nowrap !important;">${subtotalBalance.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})} AED</td>
+      </tr>`;
+  }
+
+  const watermarkHTML = `
+    <div class="watermark-container">
+      <div class="watermark-text">AHMAD ALUMINIUM</div>
+    </div>`;
+
+  const headerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid #991b1b;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:15px;">
+        <img src="Ahmad_Aluminium_Logo.png?v=5" alt="Ahmad Aluminium Logo" style="height:85px; max-width:320px; object-fit:contain; border-radius:4px;">
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:42px;font-weight:900;color:#991b1b;letter-spacing:4px;text-transform:uppercase;">INVOICE</div>
+      </div>
+    </div>
+    <div style="background:#fef2f2;border:1px solid #fca5a5;padding:7px 14px;display:flex;justify-content:space-between;font-size:12px;margin-bottom:12px;border-radius:4px;align-items:center; width:100%;">
+      <span>📞 <strong>+971588490784</strong></span>
+      <span>✉️ info@ahmadaluminium.ae</span>
+      <span>🌐 www.ahmadaluminium.ae</span>
+    </div>`;
+
+  const doc = `
+  <div class="quotation-page">
+    ${watermarkHTML}
+    <div style="position:relative;z-index:1;">
+      ${headerHTML}
+      <div class="client-meta-grid" style="margin-top: 15px;">
+        <div>
+          <div class="section-label">Client Details:</div>
+          <div><strong>To:</strong> ${clientName || '&nbsp;'}</div>
+          <div style="margin-top: 4px; line-height: 1.4;"><strong>Address:</strong> ${clientAddr ? clientAddr.replace(/\n/g, '<br>') : '&nbsp;'}</div>
+        </div>
+        <div style="text-align: right;">
+          <div class="section-label" style="text-align: right;">Document Info:</div>
+          <div><strong>Invoice No:</strong> <span style="color:#991b1b; font-weight:bold;">${ref}</span></div>
+          <div style="margin-top: 4px;"><strong>Date:</strong> ${date}</div>
+        </div>
+      </div>
+      
+      <!-- Blue Double line Subject strip matching PDF 215 exactly -->
+      <div style="text-align:center;font-style:italic;font-weight:bold;font-size:14px;color:#2980b9;border-bottom:2px solid #2980b9;border-top:2px solid #2980b9;padding:8px 0;margin-bottom:20px;margin-top: 15px;">
+        Subject: ${subject || '&nbsp;'}
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; margin-top:20px; table-layout:fixed;">
+        <thead>
+          ${tableHeaders}
+        </thead>
+        <tbody>
+          ${rows}
+          ${totalsRows}
+        </tbody>
+      </table>
+
+      <!-- Redesigned professional footer layout replacing baseline signature blocks [3] -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-top:50px;">
+        <!-- Left Side: Clean highlighted delivery terms block -->
+        <div style="width: 55%; padding-right: 20px;">
+          <div style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 6px;">Delivery Terms:</div>
+          <div style="font-size: 12px; color: #334155; line-height: 1.6; font-style: italic; border-left: 2px solid #991b1b; padding-left: 10px;">
+            ${delivery || 'N/A'}
+          </div>
+        </div>
+        
+        <!-- Right Side: Vertical stacked professional signature & stamp layout -->
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:20px; width:40%; text-align:right;">
+          <!-- Signature Box -->
+          <div style="display:flex; align-items:center; gap:15px; border-bottom:1.5px solid #cbd5e1; padding-bottom:8px; width:100%; justify-content:flex-end;">
+            <span style="font-weight:bold; font-size:11px; text-transform:uppercase; color:#64748b; letter-spacing:0.5px;">Authorized Signature:</span>
+            <img src="Signature-Ahmad.png?v=5" alt="Ahmad Signature" style="height:55px; width:auto; display:inline-block; object-fit:contain;">
+          </div>
+          
+          <!-- Stamp Box -->
+          <div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+            <div style="font-size:10px; color:#64748b; margin-bottom:6px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Official Company Stamp:</div>
+            <img src="Stamp-Ahmad.jpg?v=5" alt="Ahmad Stamp" style="height:110px; width:auto; display:inline-block; border-radius:4px; object-fit:contain;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('quotationDoc').innerHTML = doc;
+}
+
+// --- AUTOMATIC SEQUENCE PDF SAVER ---
+async function downloadPDF() {
+  const ref = document.getElementById('quotRef').value || 'AA-2026-002';
+  
+  // Directly select the inner .quotation-page instead of the outer #quotationDoc container to bypass parent viewport offsets
+  const element = document.querySelector('.quotation-page');
+  
+  if (!element) {
+    alert("Please generate the invoice first.");
+    return;
+  }
+
+  // Save original scroll states
+  const savedScrollX = window.scrollX;
+  const savedScrollY = window.scrollY;
+
+  // Force scrolling window to top-left coordinates to prevent position shifts during canvas draw
+  window.scrollTo(0, 0);
+
+  // Temporarily force desktop compiling mode to bypass viewport/responsive limitations
+  document.body.classList.add('pdf-export');
+
+  const opt = {
+    margin:       0,
+    filename:     `${ref}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { 
+      scale: 2, 
+      useCORS: true, 
+      logging: false,
+      scrollX: 0,
+      scrollY: 0
+    },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  try {
+    if (savedFolderHandle) {
+      const hasPermission = await verifyPermission(savedFolderHandle, true);
+      if (hasPermission) {
+        const blob = await html2pdf().set(opt).from(element).output('blob');
+        const fileHandle = await savedFolderHandle.getFileHandle(`${ref}.pdf`, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        
+        alert(`Successfully saved to folder: "${ref}.pdf"`);
+        incrementReferenceNumber();
+        document.body.classList.remove('pdf-export');
+        window.scrollTo(savedScrollX, savedScrollY); // Restore view coordinates
+        return;
+      }
+    }
+  } catch (err) {
+    console.error("Auto-save folder writing failed, falling back to browser download:", err);
+  }
+
+  html2pdf().set(opt).from(element).save().then(() => {
+    incrementReferenceNumber();
+    document.body.classList.remove('pdf-export');
+    window.scrollTo(savedScrollX, savedScrollY); // Restore view coordinates
+  }).catch(err => {
+    document.body.classList.remove('pdf-export');
+    window.scrollTo(savedScrollX, savedScrollY); // Restore view coordinates
+    console.error("PDF download failed", err);
+  });
+}
+
+function incrementReferenceNumber() {
+  const refVal = document.getElementById('quotRef').value;
+  const numPart = refVal.match(/\d+$/);
+  if (numPart) {
+    const usedNum = parseInt(numPart[0]);
+    localStorage.setItem('nextInvNum', usedNum + 1);
+    const currentYear = new Date().getFullYear();
+    document.getElementById('quotRef').value = "AA-" + currentYear + "-" + formatNumber(usedNum + 1);
+  }
+}
+
+function triggerSilentCloudSave() {
+  document.getElementById('syncStatus').textContent = "☁️ Saving...";
+  const mode = document.getElementById('invoiceMode').value;
+  const items = getItems();
+  
+  let totalAdvance = 0;
+  let grand = 0;
+
+  if (mode === 'mode3') {
+    totalAdvance = items.reduce((s, i) => s + i.paid, 0);
+    grand = items.reduce((s, i) => s + i.balance, 0);
+  } else {
+    totalAdvance = items.reduce((s, i) => s + i.advance, 0);
+    grand = totalAdvance + (mode === 'mode1' ? totalAdvance * 0.05 : 0);
+  }
+
+  const data = {
+    ref: document.getElementById('quotRef').value,
+    date: document.getElementById('quotDate').value,
+    client: document.getElementById('clientName').value,
+    clientAddr: document.getElementById('clientAddr').value,
+    subject: document.getElementById('subject').value,
+    delivery: document.getElementById('delivery').value,
+    advance: totalAdvance,
+    total: grand,
+    items: items
+  };
+
+  fetch(DB_URL, { method: "POST", body: JSON.stringify(data) }).then(() => {
+    document.getElementById('syncStatus').textContent = "☁️ Synced";
+  }).catch(e => {
+    document.getElementById('syncStatus').textContent = "☁️ Sync Error";
+    console.error(e);
+  });
+}
+
+function shareToWhatsApp() {
+  const phone = "+971588490784";
+  const msg = encodeURIComponent("Hello, please find your invoice Ref: " + document.getElementById('quotRef').value);
+  window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+}
+
+function clearDraft() {
+  if (confirm("Reset current draft?")) {
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientAddr').value = '';
+    document.getElementById('subject').value = '';
+    document.getElementById('itemsContainer').innerHTML = '';
+    addItem();
+    generateQuotation();
+  }
+}
+
+window.onload = () => {
+  let currentYear = new Date().getFullYear();
+  let currentSavedRef = localStorage.getItem('nextInvNum') || 2;
+  const quotRefEl = document.getElementById('quotRef');
+  if (quotRefEl) {
+    quotRefEl.value = "AA-" + currentYear + "-" + formatNumber(currentSavedRef);
+  }
+
+  const dateEl = document.getElementById('quotDate');
+  if (dateEl) {
+    dateEl.valueAsDate = new Date();
+  }
+
+  initFolderSelection(); // Retrieve saved directory handle if active
+  fetchRecentQuotes();   // Start history directory loading on startup
+  addItem();
+};
+</script>
+</body>
+</html>

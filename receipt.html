@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahmad Receipt PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+        
+        /* Professional Typography Settings */
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .arabic { font-family: 'Cairo', sans-serif; direction: rtl; }
+        
+        .voucher-paper {
+            width: 210mm;
+            min-height: 148mm;
+            background: white;
+            border: 2px solid #b91c1c; /* Refined 2px border */
+            padding: 40px;
+            margin: auto;
+            position: relative;
+            box-sizing: border-box;
+            letter-spacing: -0.01em;
+        }
+
+        /* Elegant Dotted Lines */
+        .dotted-line {
+            border-bottom: 1px dotted #64748b;
+            display: inline-block;
+            padding: 0 8px;
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        .label-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            align-items: end;
+            margin-top: 50px;
+        }
+
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- INPUT SIDEBAR (No changes to logic, just styling) -->
+    <aside class="w-85 bg-white border-r p-8 no-print overflow-y-auto shadow-sm">
+        <div class="mb-8">
+            <h2 class="text-slate-800 font-semibold text-xs uppercase tracking-[0.2em]">Management Suite</h2>
+        </div>
+        
+        <div class="space-y-5">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Voucher Amount (AED)</label>
+                <input type="number" id="in_val" placeholder="0.00" step="0.01" class="w-full border border-slate-200 p-3 rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all font-medium" oninput="render()">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Received From</label>
+                <input type="text" id="in_name" placeholder="Full Name" class="w-full border border-slate-200 p-3 rounded-lg outline-none" oninput="render()">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 block">Purpose (Being)</label>
+                <textarea id="in_desc" rows="2" placeholder="Description of payment" class="w-full border border-slate-200 p-3 rounded-lg outline-none" oninput="render()"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <input type="text" id="in_serial" placeholder="Serial No" class="border border-slate-200 p-3 rounded-lg text-sm" oninput="render()">
+                <input type="text" id="in_pay" placeholder="Payment Mode" class="border border-slate-200 p-3 rounded-lg text-sm" oninput="render()">
+            </div>
+        </div>
+
+        <div class="mt-10 space-y-3">
+            <button onclick="savePDF()" class="w-full bg-slate-900 text-white font-medium py-3.5 rounded-lg hover:bg-black transition shadow-sm">Download PDF</button>
+            <button onclick="shareToWhatsApp()" class="w-full bg-emerald-600 text-white font-medium py-3.5 rounded-lg hover:bg-emerald-700 flex items-center justify-center gap-2 shadow-sm">
+                <span>Share via WhatsApp</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- PREVIEW AREA (The Receipt Design) -->
+    <main class="flex-1 p-10 overflow-auto flex justify-center items-start">
+        <div id="voucher-pdf" class="voucher-paper shadow-sm">
+            
+            <!-- HEADER SECTION -->
+            <div class="flex justify-between items-start mb-8">
+                <!-- Amount Box (Cleaned up) -->
+                <div class="border border-red-700 w-36 text-center">
+                    <div class="flex bg-red-700 text-white text-[10px] font-semibold tracking-wider py-1 uppercase">
+                        <div class="w-2/3 border-r border-red-800">Dhs</div>
+                        <div class="w-1/3">Fils</div>
+                    </div>
+                    <div class="flex text-2xl font-medium py-1.5">
+                        <div id="out_dhs" class="w-2/3 border-r border-slate-100">0</div>
+                        <div id="out_fils" class="w-1/3 text-slate-300">00</div>
+                    </div>
+                </div>
+
+                <!-- Logo Center (Reduced Size for elegance) -->
+                <div class="text-center">
+                    <img src="Ahmad_Aluminium_Logo.png" class="h-16 mx-auto mb-2">
+                    <h1 class="text-red-700 font-semibold text-sm tracking-[0.1em] uppercase">Ahmad Aluminium & Glass Cont.</h1>
+                </div>
+
+                <!-- Info Right -->
+                <div class="text-right text-red-700 text-[10px] font-medium leading-relaxed">
+                    <p>Tel: +971 58 849 0784</p>
+                    <p class="arabic mt-0.5">شارع 29 - القوز - دبي</p>
+                </div>
+            </div>
+
+            <!-- TITLE (Refined font weight) -->
+            <div class="text-center border-y border-red-700 py-2 mb-10">
+                <h2 class="text-xl font-medium tracking-[0.3em] uppercase">Receipt Voucher / <span class="arabic text-lg tracking-normal">سند قبض</span></h2>
+            </div>
+
+            <!-- CONTENT BODY (Typography adjustment) -->
+            <div class="space-y-8 text-[14px]">
+                <div class="flex justify-between items-baseline">
+                    <p class="label-text">Serial No: <span id="out_serial" class="dotted-line min-w-[150px] text-center">---</span></p>
+                    <p class="label-text">Date: <span id="out_date" class="dotted-line min-w-[150px] text-center">---</span></p>
+                </div>
+
+                <div class="flex justify-between items-end">
+                    <div class="label-text w-[80%]">Received from Mr./Ms. <span id="out_name" class="dotted-line w-[75%]">---</span></div>
+                    <div class="arabic font-semibold text-slate-700">وردت من السيد/ة</div>
+                </div>
+                
+                <div class="flex justify-between items-end">
+                    <div class="label-text w-[80%]">The sum of Dhs. <span id="out_words" class="dotted-line w-[78%]">---</span></div>
+                    <div class="arabic font-semibold text-slate-700">مبلغ وقدره درهم</div>
+                </div>
+                
+                <div class="flex justify-between items-end">
+                    <div class="label-text w-[85%]">Being: <span id="out_desc" class="dotted-line w-[88%]">---</span></div>
+                    <div class="arabic font-semibold text-slate-700">وذلك عن</div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="footer-grid pt-4">
+                    <div class="text-left">
+                        <p class="label-text">Payment: <span id="out_pay" class="dotted-line min-w-[120px]">---</span></p>
+                        <p class="text-[9px] font-semibold text-slate-400 mt-2 uppercase">Accountant</p>
+                    </div>
+
+                    <!-- Stamp Center -->
+                    <div class="text-center">
+                        <img src="Stamp-Ahmad.jpg" class="h-24 mx-auto opacity-80 mix-blend-multiply">
+                        <p class="text-[8px] font-semibold text-slate-300 mt-1 uppercase tracking-widest">Company Stamp</p>
+                    </div>
+
+                    <!-- Signature Right -->
+                    <div class="text-center">
+                        <img src="Signature-Ahmad.png" class="h-20 mx-auto -mb-6 relative z-10">
+                        <div class="border-t border-slate-900 w-32 mx-auto pt-1.5">
+                            <p class="font-semibold text-[9px] uppercase tracking-wider">Authorized Signatory</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // PWA & Date logic remains the same
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+
+        window.onload = () => {
+            const d = new Date();
+            document.getElementById('out_date').innerText = `${d.getDate()} / ${d.getMonth() + 1} / ${d.getFullYear()}`;
+        };
+
+        function render() {
+            const valInput = document.getElementById('in_val').value;
+            const val = parseFloat(valInput) || 0;
+            const dhs = Math.floor(val);
+            const fils = Math.round((val - dhs) * 100);
+
+            document.getElementById('out_dhs').innerText = dhs;
+            document.getElementById('out_fils').innerText = fils.toString().padStart(2, '0');
+            document.getElementById('out_serial').innerText = document.getElementById('in_serial').value || '---';
+            document.getElementById('out_name').innerText = document.getElementById('in_name').value || '---';
+            document.getElementById('out_desc').innerText = document.getElementById('in_desc').value || '---';
+            document.getElementById('out_pay').innerText = document.getElementById('in_pay').value || '---';
+
+            if (val > 0) {
+                let text = toWords(dhs) + " Dirhams";
+                if (fils > 0) { text += " and " + toWords(fils) + " Fils"; }
+                document.getElementById('out_words').innerText = text + " Only.";
+            } else {
+                document.getElementById('out_words').innerText = "---";
+            }
+        }
+
+        async function shareToWhatsApp() {
+            const element = document.getElementById('voucher-pdf');
+            const serial = document.getElementById('in_serial').value || 'New';
+            const pdfBlob = await html2pdf().set({
+                margin: 5, image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            }).from(element).output('blob');
+
+            const file = new File([pdfBlob], `Receipt_${serial}.pdf`, { type: "application/pdf" });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try { await navigator.share({ files: [file], title: 'Receipt', text: 'Ahmad Aluminium - Official Receipt' });
+                } catch (err) { console.log(err); }
+            } else {
+                const url = window.URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a'); a.href = url; a.download = `Receipt_${serial}.pdf`; a.click();
+                window.open(`https://wa.me/?text=Hello, your receipt has been generated.`, '_blank');
+            }
+        }
+
+        function savePDF() {
+            const element = document.getElementById('voucher-pdf');
+            html2pdf().set({
+                margin: 10, filename: 'Receipt.pdf', image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 3, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            }).from(element).save();
+        }
+
+        function toWords(s) {
+            const th = ['', 'Thousand', 'Million', 'Billion'];
+            const dg = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+            const tn = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const tw = ['Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            s = Math.floor(s).toString();
+            var x = s.length; var n = s.split(''); var str = ''; var sk = 0;
+            for (var i = 0; i < x; i++) {
+                if ((x - i) % 3 == 2) {
+                    if (n[i] == '1') { str += tn[Number(n[i + 1])] + ' '; i++; sk = 1; }
+                    else if (n[i] != 0) { str += tw[n[i] - 2] + ' '; sk = 1; }
+                } else if (n[i] != 0) {
+                    str += dg[n[i]] + ' ';
+                    if ((x - i) % 3 == 0) str += 'Hundred ';
+                    sk = 1;
+                }
+                if ((x - i) % 3 == 1) { if (sk) str += th[(x - i - 1) / 3] + ' '; sk = 0; }
+            }
+            return str.trim();
+        }
+    </script>
+</body>
+</html>
