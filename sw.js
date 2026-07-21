@@ -1,14 +1,15 @@
-const CACHE_NAME = 'ahmad-suite-cache-v1';
+const CACHE_NAME = 'ahmad-suite-cache-v2'; // Cache version incremented
 const ASSETS = [
   './',
-  './index.html',
-  './quotation.html',
-  './invoice.html',
-  './receipt.html',
-  './manifest.json',
-  './Ahmad_Aluminium_Logo.png',
-  './Signature-Ahmad.png',
-  './Stamp-Ahmad.jpg'
+  'index.html',
+  'quotation.html',
+  'invoice.html',
+  'receipt.html',
+  'delivery_note.html', // Caching the delivery note module
+  'manifest.json',
+  'Ahmad_Aluminium_Logo.png',
+  'Signature-Ahmad.png',
+  'Stamp-Ahmad.jpg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -35,7 +36,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignore Google Sheet URLs to avoid CORS problems
+  // Ignore Google APIs and Sheets database responses to prevent CORS issues
   if (event.request.url.includes('google.com') || event.request.url.includes('googleusercontent.com')) {
     return;
   }
