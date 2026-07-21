@@ -54,8 +54,15 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <!-- INPUT SIDEBAR (No changes to logic, just styling) -->
+    <!-- INPUT SIDEBAR -->
     <aside class="w-85 bg-white border-r p-8 no-print overflow-y-auto shadow-sm">
+        <!-- New Dashboard Home Button -->
+        <div class="mb-6">
+            <a href="index.html" class="w-full text-center py-2.5 px-4 rounded-lg bg-red-700 hover:bg-red-800 text-white font-bold flex items-center justify-center gap-2 mb-4 transition text-sm shadow-sm">
+              🏠 Return to Dashboard
+            </a>
+        </div>
+
         <div class="mb-8">
             <h2 class="text-slate-800 font-semibold text-xs uppercase tracking-[0.2em]">Management Suite</h2>
         </div>
@@ -93,7 +100,7 @@
             
             <!-- HEADER SECTION -->
             <div class="flex justify-between items-start mb-8">
-                <!-- Amount Box (Cleaned up) -->
+                <!-- Amount Box -->
                 <div class="border border-red-700 w-36 text-center">
                     <div class="flex bg-red-700 text-white text-[10px] font-semibold tracking-wider py-1 uppercase">
                         <div class="w-2/3 border-r border-red-800">Dhs</div>
@@ -105,7 +112,7 @@
                     </div>
                 </div>
 
-                <!-- Logo Center (Reduced Size for elegance) -->
+                <!-- Logo Center -->
                 <div class="text-center">
                     <img src="Ahmad_Aluminium_Logo.png" class="h-16 mx-auto mb-2">
                     <h1 class="text-red-700 font-semibold text-sm tracking-[0.1em] uppercase">Ahmad Aluminium & Glass Cont.</h1>
@@ -118,12 +125,12 @@
                 </div>
             </div>
 
-            <!-- TITLE (Refined font weight) -->
+            <!-- TITLE -->
             <div class="text-center border-y border-red-700 py-2 mb-10">
                 <h2 class="text-xl font-medium tracking-[0.3em] uppercase">Receipt Voucher / <span class="arabic text-lg tracking-normal">سند قبض</span></h2>
             </div>
 
-            <!-- CONTENT BODY (Typography adjustment) -->
+            <!-- CONTENT BODY -->
             <div class="space-y-8 text-[14px]">
                 <div class="flex justify-between items-baseline">
                     <p class="label-text">Serial No: <span id="out_serial" class="dotted-line min-w-[150px] text-center">---</span></p>
@@ -171,7 +178,6 @@
     </main>
 
     <script>
-        // PWA & Date logic remains the same
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
         window.onload = () => {
